@@ -194,6 +194,8 @@ static const int jl_gc_sizeclasses[JL_GC_N_POOLS] = {
 
 STATIC_INLINE int JL_CONST_FUNC jl_gc_szclass(size_t sz, size_t alignment)
 {
+    // Check that the object fits in the largest pool.
+    assert(sz <= GC_MAX_SZCLASS + sizeof(jl_taggedvalue_t));
 #ifdef _P64
     if (sz <=    8)
         return 0;
@@ -227,17 +229,20 @@ STATIC_INLINE jl_value_t *jl_gc_alloc_(jl_ptls_t ptls, size_t sz, size_t alignme
     const size_t allocsz = sz + sizeof(jl_taggedvalue_t);
     if (allocsz < sz) // overflow in adding offs, size was "negative"
         jl_throw(jl_memory_exception);
+    const size_t alignsz = jl_gc_alignsz(allocsz, alignment);
     jl_value_t *v;
-    if (allocsz <= GC_MAX_SZCLASS + sizeof(jl_taggedvalue_t)) {
-        int pool_id = jl_gc_szclass(allocsz, alignment);
+    if (alignsz <= GC_MAX_SZCLASS + sizeof(jl_taggedvalue_t)) {
+        int pool_id = jl_gc_szclass(alignsz);
         jl_gc_pool_t *p = &ptls->heap.norm_pools[pool_id];
         int osize;
-        if (jl_is_constexpr(allocsz)) {
+        if (jl_is_constexpr(alignsz)) {
             osize = jl_gc_sizeclasses[pool_id];
         }
         else {
             osize = p->osize;
         }
+        assert((size_t)osize >= alignment &&
+               (alignment == 0 || alignment == 1 || osize % alignment == 0));
         v = jl_gc_pool_alloc(ptls, (char*)p - (char*)ptls, osize);
     }
     else {
