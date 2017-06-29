@@ -449,6 +449,62 @@ end
 INCLUDE_STATE = 3 # include = include_relative
 include(Base, "precompile.jl")
 
+@noinline function test_clone_f(a)
+    s = zero(eltype(a))
+    @inbounds @simd for i in 1:length(a)
+        s += a[i]
+    end
+    return s
+end
+
+@noinline function test_clone_g(a, n)
+    s = zero(eltype(a))
+    for i in 1:n
+        s += test_clone_f(a)
+    end
+    return s
+end
+
+test_clone_g(Float64[], 1)
+
+@noinline function test_vec_ccall(v, b)
+    if b
+        ccall(:jl_breakpoint, Void, (NTuple{8,VecElement{Float64}},), v)
+    end
+end
+test_vec_ccall(ntuple(i->VecElement(Float64(i)), 8), false)
+
+@noinline function test_cfunction_op1()
+    return cfunction(Base.pause, Void, Tuple{}) - cfunction(identity, Int, Tuple{Int})
+end
+
+@noinline function test_cfunction_op2()
+    return unsafe_load(Ptr{Int8}(cfunction(Base.pause, Void, Tuple{})), 2)
+end
+
+@noinline function test_cfunction_op3()
+    return Float64(Int(cfunction(Base.pause, Void, Tuple{}))) - Int(cfunction(identity, Int, Tuple{Int}))
+end
+
+@noinline function test_cfunction_op4()
+    return (Int(cfunction(Base.pause, Void, Tuple{})) % Int8,
+            Int(cfunction(identity, Int, Tuple{Int})) % Int8)
+end
+@noinline function test_cfunction_op5()
+    return (Int(cfunction(Base.pause, Void, Tuple{})) % Int16,
+            Int(cfunction(identity, Int, Tuple{Int})) % Int8)
+end
+@noinline function test_cfunction_op6()
+    return (VecElement(Int(cfunction(Base.pause, Void, Tuple{})) % Int8),
+            VecElement(Int(cfunction(identity, Int, Tuple{Int})) % Int8))
+end
+test_cfunction_op1()
+test_cfunction_op2()
+test_cfunction_op3()
+test_cfunction_op4()
+test_cfunction_op5()
+test_cfunction_op6()
+
 end # baremodule Base
 
 using Base

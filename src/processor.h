@@ -119,7 +119,7 @@ typedef enum {
 
 int jl_test_cpu_feature(jl_cpu_feature_t feature);
 
-typedef struct {
+typedef struct _jl_sysimg_fptrs_t {
     // base function pointer
     const char *base;
     // number of functions
