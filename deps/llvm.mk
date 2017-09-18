@@ -460,6 +460,7 @@ $(eval $(call LLVM_PATCH,llvm-rL293230-icc17-cmake)) # Remove for 4.0
 $(eval $(call LLVM_PATCH,llvm-D32593))
 $(eval $(call LLVM_PATCH,llvm-D33179))
 $(eval $(call LLVM_PATCH,llvm-PR29010-i386-xmm)) # Remove for 4.0
+$(eval $(call LLVM_PATCH,llvm-D37939-Mem2Reg-Also-handle-memcpy))
 else ifeq ($(LLVM_VER_SHORT),4.0)
 # Cygwin and openSUSE still use win32-threads mingw, https://llvm.org/bugs/show_bug.cgi?id=26365
 $(eval $(call LLVM_PATCH,llvm-4.0.0_threads))
