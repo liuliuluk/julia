@@ -221,10 +221,19 @@ This section lists changes that do not have deprecation warnings.
     consistent with its documentation. Previously it would return a `BitArray{0}` for scalar
     `x` ([#20233]).
 
+  * The rules for mixed-signedness integer arithmetic (e.g. `Int32(1) + UInt64(1)`) have been
+    simplified: if the arguments have different sizes (in bits), then the type of the larger
+    argument is used. If the arguments have the same size, the unsigned type is used ([#9292]).
+
+  * All command line arguments passed via `-e`, `-E`, and `-L` will be executed in the order
+    given on the command line ([#23665]).
+
 Library improvements
 --------------------
 
   * The functions `strip`, `lstrip` and `rstrip` now return `SubString` ([#22496]).
+
+  * The functions `strwidth` and `charwidth` have been merged into `textwidth`([#20816]).
 
   * The functions `base` and `digits` digits now accept a negative
     base (like `ndigits` did) ([#21692]).
@@ -300,6 +309,11 @@ Deprecated or removed
 
   * The keyword `immutable` is fully deprecated to `struct`, and
     `type` is fully deprecated to `mutable struct` ([#19157], [#20418]).
+
+  * Indexing into multidimensional arrays with more than one index but fewer indices than there are
+    dimensions is no longer permitted when those trailing dimensions have lengths greater than 1.
+    Instead, reshape the array or add trailing indices so the dimensionality and number of indices
+    match ([#14770], [#23628]).
 
   * `writecsv(io, a; opts...)` has been deprecated in favor of
     `writedlm(io, a, ','; opts...)` ([#23529]).
